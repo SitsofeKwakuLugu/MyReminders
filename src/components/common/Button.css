@@ -1,0 +1,63 @@
+@import "../../styles/variables.css";
+
+.btn {
+  padding: 0.85rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  font-family: inherit;
+  letter-spacing: 0.3px;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn.primary:hover {
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn.primary:disabled {
+  background: linear-gradient(135deg, #4b5563 0%, #3a3a4a 100%);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.btn.secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  transition: var(--transition-normal);
+}
+
+.btn.secondary:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.btn.secondary:disabled {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
