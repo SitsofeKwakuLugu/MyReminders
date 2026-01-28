@@ -1,38 +1,66 @@
-const STORAGE_KEY = "tasks_user";
+import { apiService } from './apiService';
+
+const STORAGE_KEY = "auth_user";
+const TOKEN_KEY = "auth_token";
 
 export const authService = {
-  login(email, password) {
-    const user = JSON.parse(localStorage.getItem(STORAGE_KEY));
-
-    if (!user || user.email !== email || user.password !== password) {
-      throw new Error("Invalid credentials");
-    }
-
-    return { id: user.id, name: user.name, email: user.email };
+  async login(email, password) {
+    const response = await apiService.post('/auth/login', { email, password });
+    
+    localStorage.setItem(TOKEN_KEY, response.token);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(response.user));
+    
+    return response.user;
   },
 
-  signup({ name, email, password }) {
-    const user = {
-      id: Date.now(),
+  async signup({ name, email, password }) {
+    const response = await apiService.post('/auth/register', {
       name,
       email,
-      password
-    };
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-
-    return { id: user.id, name: user.name, email: user.email };
+      password,
+    });
+    
+    localStorage.setItem(TOKEN_KEY, response.token);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(response.user));
+    
+    return response.user;
   },
 
-  logout() {
-    // no-op for now (token-based systems would invalidate tokens)
+  async logout() {
+    try {
+      await apiService.post('/auth/logout', {});
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(STORAGE_KEY);
     return true;
   },
 
   getCurrentUser() {
-    const user = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!user) return null;
+    const user = localStorage.getItem(STORAGE_KEY);
+    return user ? JSON.parse(user) : null;
+  },
 
-    return { id: user.id, name: user.name, email: user.email };
-  }
+  getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+  },
+
+  async updateProfile(data) {
+    const response = await apiService.put('/auth/profile', data);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(response.user));
+    return response.user;
+  },
+
+  async changePassword(currentPassword, newPassword) {
+    return apiService.post('/auth/change-password', {
+      current_password: currentPassword,
+      password: newPassword,
+    });
+  },
+
+  async getProfile() {
+    return apiService.get('/auth/profile');
+  },
 };

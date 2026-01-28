@@ -64,15 +64,12 @@ export default function Form({
     try {
       await onSubmit(values);
       setStatus("success");
+      setValues(initialValues);
     } catch (err) {
       setError(err);
       setStatus("typing");
     }
   };
-
-  if (status === "success") {
-    return <h1>Form submitted successfully!</h1>;
-  }
 
   return (
     <form onSubmit={handleSubmit} className="form">

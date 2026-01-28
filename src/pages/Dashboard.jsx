@@ -24,9 +24,14 @@ export default function Dashboard() {
   const pendingCount = todos.length - completedCount;
   const filteredTodos = todos;
 
-  const handleAddTodo = (data) => {
-    addTodo(data);
-    setIsAdding(false);
+  const handleAddTodo = async (data) => {
+    try {
+      await addTodo(data);
+      setIsAdding(false);
+    } catch (err) {
+      console.error('Failed to add todo:', err);
+      alert('Failed to create task: ' + err.message);
+    }
   };
 
   const editingTodo = todos.find(t => t.id === editingTodoId);
@@ -244,9 +249,8 @@ export default function Dashboard() {
               fields={[
                 { name:"title", label:"Title", required:true },
                 { name:"description", label:"Description" },
-                { name:"dueDate", label:"Due Date", type:"date" },
-                { name:"dueTime", label:"Due Time", type:"time" },
-                { name:"priority", label:"Priority", type:"select", options:["Low","Medium","High"] },
+                { name:"due_date", label:"Due Date", type:"date" },
+                { name:"priority", label:"Priority", type:"select", options:["low","medium","high"] },
                 { name:"category", label:"Category", type:"select", options:["Work","Personal","Shopping","Health","Other"] }
               ]}
               initialValues={editingTodo}
@@ -264,9 +268,8 @@ export default function Dashboard() {
               fields={[
                 { name:"title", label:"Title", required:true },
                 { name:"description", label:"Description" },
-                { name:"dueDate", label:"Due Date", type:"date" },
-                { name:"dueTime", label:"Due Time", type:"time" },
-                { name:"priority", label:"Priority", type:"select", options:["Low","Medium","High"] },
+                { name:"due_date", label:"Due Date", type:"date" },
+                { name:"priority", label:"Priority", type:"select", options:["low","medium","high"] },
                 { name:"category", label:"Category", type:"select", options:["Work","Personal","Shopping","Health","Other"] }
               ]}
               submitLabel="Create"
