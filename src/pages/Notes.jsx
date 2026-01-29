@@ -1,15 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { noteService } from "../services/noteService";
 import Sidebar from "../components/layout/Sidebar";
 import { FaPlus, FaBell, FaTrash } from "react-icons/fa";
 import "./notes.css";
 
 export default function Notes() {
   const { user } = useAuth();
-  const [notes, setNotes] = useState(() => {
-    const saved = localStorage.getItem("tasks_notes");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [notes, setNotes] = useState([]);
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const loadNotes = async () => {
+      if (isAuthenticated) {
+        try {
+          const res = await noteService.getNotes();
+          setNotes(Array.isArray(res) ? res : []);
+        } catch (err) {
+          console.error('Failed to load notes from API:', err);
+          // fallback to localStorage
+          const saved = localStorage.getItem('tasks_notes');
+          setNotes(saved ? JSON.parse(saved) : []);
+        }
+      } else {
+        const saved = localStorage.getItem('tasks_notes');
+        setNotes(saved ? JSON.parse(saved) : []);
+      }
+    };
+    loadNotes();
+  }, [isAuthenticated]);
   const [newNote, setNewNote] = useState("");
   const [selectedColor, setSelectedColor] = useState("yellow");
 
@@ -21,11 +40,28 @@ export default function Notes() {
     { id: "green", label: "Green", hex: "#34d399" }
   ];
 
-  const addNote = () => {
-    if (newNote.trim()) {
+  const addNote = async () => {
+    if (!newNote.trim()) return;
+
+    if (isAuthenticated) {
+      try {
+        const payload = {
+          title: newNote.length > 30 ? newNote.slice(0, 30) : newNote,
+          content: newNote,
+          category: selectedColor,
+        };
+        const created = await noteService.createNote(payload);
+        setNotes(prev => [...prev, created]);
+        setNewNote('');
+      } catch (err) {
+        console.error('Failed to create note via API:', err);
+        alert('Failed to save note: ' + err.message);
+      }
+    } else {
       const note = {
         id: Date.now(),
-        text: newNote,
+        title: newNote.length > 30 ? newNote.slice(0, 30) : newNote,
+        content: newNote,
         color: selectedColor,
         createdAt: new Date().toLocaleDateString()
       };
@@ -36,10 +72,20 @@ export default function Notes() {
     }
   };
 
-  const deleteNote = (id) => {
-    const updatedNotes = notes.filter(note => note.id !== id);
-    setNotes(updatedNotes);
-    localStorage.setItem("tasks_notes", JSON.stringify(updatedNotes));
+  const deleteNote = async (id) => {
+    if (isAuthenticated) {
+      try {
+        await noteService.deleteNote(id);
+        setNotes(prev => prev.filter(note => note.id !== id));
+      } catch (err) {
+        console.error('Failed to delete note via API:', err);
+        alert('Failed to delete note: ' + err.message);
+      }
+    } else {
+      const updatedNotes = notes.filter(note => note.id !== id);
+      setNotes(updatedNotes);
+      localStorage.setItem("tasks_notes", JSON.stringify(updatedNotes));
+    }
   };
 
   const colorMap = {
@@ -100,25 +146,32 @@ export default function Notes() {
         {/* Notes Grid */}
         <div className="notes-grid">
           {notes.length > 0 ? (
-            notes.map(note => (
-              <div
-                key={note.id}
-                className="note-card"
-                style={{ background: colorMap[note.color].bg, color: colorMap[note.color].text }}
-              >
-                <div className="note-header">
-                  <p className="note-date">{note.createdAt}</p>
-                  <button
-                    className="delete-btn"
-                    onClick={() => deleteNote(note.id)}
-                    title="Delete note"
-                  >
-                    <FaTrash />
-                  </button>
+            notes.map(note => {
+              const colKey = note.category || note.color || 'yellow';
+              const cmap = colorMap[colKey] || colorMap.yellow;
+              const created = note.createdAt || note.created_at || note.createdAt || new Date().toLocaleDateString();
+              const content = note.content || note.text || '';
+
+              return (
+                <div
+                  key={note.id}
+                  className="note-card"
+                  style={{ background: cmap.bg, color: cmap.text }}
+                >
+                  <div className="note-header">
+                    <p className="note-date">{created}</p>
+                    <button
+                      className="delete-btn"
+                      onClick={() => deleteNote(note.id)}
+                      title="Delete note"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                  <p className="note-content">{content}</p>
                 </div>
-                <p className="note-content">{note.text}</p>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="empty-notes">
               <p>No notes yet. Create your first note!</p>

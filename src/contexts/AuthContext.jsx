@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { authService } from "../services/authService";
 
-export const AuthContext = createContext(null);
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -85,3 +85,5 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
+export { AuthContext };

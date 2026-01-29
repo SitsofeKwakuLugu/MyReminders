@@ -1,66 +1,50 @@
 import { apiService } from './apiService';
 
-const STORAGE_KEY = "auth_user";
-const TOKEN_KEY = "auth_token";
-
 export const authService = {
   async login(email, password) {
     const response = await apiService.post('/auth/login', { email, password });
-    
-    localStorage.setItem(TOKEN_KEY, response.token);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(response.user));
-    
-    return response.user;
-  },
-
-  async signup({ name, email, password }) {
-    const response = await apiService.post('/auth/register', {
-      name,
-      email,
-      password,
-    });
-    
-    localStorage.setItem(TOKEN_KEY, response.token);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(response.user));
-    
-    return response.user;
-  },
-
-  async logout() {
-    try {
-      await apiService.post('/auth/logout', {});
-    } catch (error) {
-      console.error('Logout error:', error);
+    if (response.token) {
+      localStorage.setItem('auth_token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
     }
-    
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(STORAGE_KEY);
-    return true;
+    return response.user;
+  },
+
+  async signup(data) {
+    const response = await apiService.post('/auth/register', data);
+    if (response.token) {
+      localStorage.setItem('auth_token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+    }
+    return response.user;
   },
 
   getCurrentUser() {
-    const user = localStorage.getItem(STORAGE_KEY);
-    return user ? JSON.parse(user) : null;
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
   },
 
-  getToken() {
-    return localStorage.getItem(TOKEN_KEY);
+  async logout() {
+    await apiService.post('/auth/logout', {});
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+  },
+
+  async getProfile() {
+    return apiService.get('/auth/profile');
   },
 
   async updateProfile(data) {
     const response = await apiService.put('/auth/profile', data);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(response.user));
-    return response.user;
+    localStorage.setItem('user', JSON.stringify(response));
+    return response;
   },
 
   async changePassword(currentPassword, newPassword) {
     return apiService.post('/auth/change-password', {
       current_password: currentPassword,
       password: newPassword,
+      password_confirmation: newPassword,
     });
-  },
-
-  async getProfile() {
-    return apiService.get('/auth/profile');
   },
 };

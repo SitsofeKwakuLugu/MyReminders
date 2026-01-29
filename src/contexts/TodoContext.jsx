@@ -2,7 +2,7 @@ import { createContext, useState, useContext, useEffect } from "react";
 import { todoService } from "../services/todoService";
 import { useAuth } from "../hooks/useAuth";
 
-export const TodoContext = createContext();
+const TodoContext = createContext();
 
 export function TodoProvider({ children }) {
   const [todos, setTodos] = useState([]);
@@ -25,7 +25,9 @@ export function TodoProvider({ children }) {
       setError(null);
       const response = await todoService.getTodos();
       console.log('Loaded todos response:', response);
-      setTodos(response.data || []);
+      // Handle both paginated and direct responses
+      const todos = response.data || response;
+      setTodos(Array.isArray(todos) ? todos : []);
     } catch (err) {
       console.error('Error loading todos:', err);
       setError(err.message);
@@ -34,7 +36,6 @@ export function TodoProvider({ children }) {
     }
   };
 
-  // Add a new To-Do
   const addTodo = async (todo) => {
     try {
       setError(null);
@@ -49,7 +50,6 @@ export function TodoProvider({ children }) {
     }
   };
 
-  // Edit an existing To-Do
   const editTodo = async (id, updated) => {
     try {
       setError(null);
@@ -64,13 +64,76 @@ export function TodoProvider({ children }) {
     }
   };
 
-  // Delete a To-Do
   const deleteTodo = async (id) => {
     try {
       setError(null);
       await todoService.deleteTodo(id);
       setTodos(prev => prev.filter(todo => todo.id !== id));
     } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const addSubTodo = async (parentId, subTodo) => {
+    try {
+      setError(null);
+      const response = await todoService.createSubTodo(parentId, subTodo);
+      setTodos(prev =>
+        prev.map(todo =>
+          todo.id === parentId
+            ? { ...todo, subTodos: [...(todo.subTodos || []), response] }
+            : todo
+        )
+      );
+      return response;
+    } catch (err) {
+      console.error('Error adding sub-todo:', err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const editSubTodo = async (parentId, subId, updated) => {
+    try {
+      setError(null);
+      const response = await todoService.updateSubTodo(parentId, subId, updated);
+      setTodos(prev =>
+        prev.map(todo =>
+          todo.id === parentId
+            ? {
+                ...todo,
+                subTodos: todo.subTodos.map(sub =>
+                  sub.id === subId ? response : sub
+                )
+              }
+            : todo
+        )
+      );
+      return response;
+    } catch (err) {
+      console.error('Error editing sub-todo:', err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const deleteSubTodo = async (parentId, subId) => {
+    try {
+      setError(null);
+      await todoService.deleteSubTodo(parentId, subId);
+      setTodos(prev =>
+        prev.map(todo =>
+          todo.id === parentId
+            ? {
+                ...todo,
+                subTodos: todo.subTodos.filter(sub => sub.id !== subId)
+              }
+            : todo
+        )
+      );
+    } catch (err) {
+      console.error('Error deleting sub-todo:', err);
       setError(err.message);
       throw err;
     }
@@ -85,6 +148,9 @@ export function TodoProvider({ children }) {
         addTodo,
         editTodo,
         deleteTodo,
+        addSubTodo,
+        editSubTodo,
+        deleteSubTodo,
         loadTodos,
       }}
     >
@@ -94,4 +160,6 @@ export function TodoProvider({ children }) {
 }
 
 // Custom hook for easier use
-export const useTodos = () => useContext(TodoContext);
+const useTodos = () => useContext(TodoContext);
+
+export { TodoContext, useTodos };

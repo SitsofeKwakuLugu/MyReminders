@@ -2,6 +2,7 @@ import "./Input.css";
 
 export default function Input({
   label,
+  name,
   type = "text",
   value,
   onChange,
@@ -9,12 +10,17 @@ export default function Input({
   options,
   disabled = false   // <-- add this
 }) {
+  // Generate a unique id based on name if provided
+  const inputId = name ? `input-${name}` : undefined;
+
   return (
     <div className="input-group">
-      {label && <label>{label}</label>}
+      {label && <label htmlFor={inputId}>{label}</label>}
 
       {type === "select" ? (
         <select
+          id={inputId}
+          name={name}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}   // <-- important
@@ -26,6 +32,8 @@ export default function Input({
         </select>
       ) : (
         <input
+          id={inputId}
+          name={name}
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}

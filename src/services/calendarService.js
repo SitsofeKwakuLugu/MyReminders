@@ -1,29 +1,23 @@
 import { apiService } from './apiService';
 
 export const calendarService = {
-  async getEvents(params = {}) {
-    const query = new URLSearchParams();
-    if (params.start_date) query.append('start_date', params.start_date);
-    if (params.end_date) query.append('end_date', params.end_date);
-    if (params.page) query.append('page', params.page);
-
-    const queryString = query.toString();
-    return apiService.get(`/calendar-events${queryString ? '?' + queryString : ''}`);
+  getEvents() {
+    return apiService.get('/events');
   },
 
-  async createEvent(data) {
-    return apiService.post('/calendar-events', data);
+  getEventById(id) {
+    return apiService.get(`/events/${id}`);
   },
 
-  async updateEvent(id, data) {
-    return apiService.put(`/calendar-events/${id}`, data);
+  createEvent(data) {
+    return apiService.post('/events', data);
   },
 
-  async deleteEvent(id) {
-    return apiService.delete(`/calendar-events/${id}`);
+  updateEvent(id, data) {
+    return apiService.put(`/events/${id}`, data);
   },
 
-  async getEvent(id) {
-    return apiService.get(`/calendar-events/${id}`);
+  deleteEvent(id) {
+    return apiService.delete(`/events/${id}`);
   },
 };

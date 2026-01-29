@@ -6,9 +6,9 @@ export default function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = ({ fullname, email, password }) => {
+  const handleSubmit = ({ fullname, email, password, confirm }) => {
     try {
-      signup({ name: fullname, email, password }); // map fullname -> name
+      signup({ name: fullname, email, password, password_confirmation: confirm });
       navigate("/dashboard");
     } catch (err) {
       alert(err.message);

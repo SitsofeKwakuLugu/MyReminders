@@ -72,10 +72,11 @@ export default function Profile() {
               {isEditing ? (
                 <div className="edit-form">
                   <div className="form-group">
-                    <label>
+                    <label htmlFor="profile-fullname">
                       <FaUser /> Full Name
                     </label>
                     <input
+                      id="profile-fullname"
                       type="text"
                       name="name"
                       value={formData.name}
@@ -85,10 +86,11 @@ export default function Profile() {
                   </div>
 
                   <div className="form-group">
-                    <label>
+                    <label htmlFor="profile-email">
                       <FaEnvelope /> Email
                     </label>
                     <input
+                      id="profile-email"
                       type="email"
                       name="email"
                       value={formData.email}

@@ -1,29 +1,23 @@
 import { apiService } from './apiService';
 
 export const noteService = {
-  async getNotes(params = {}) {
-    const query = new URLSearchParams();
-    if (params.pinned !== undefined) query.append('pinned', params.pinned);
-    if (params.color) query.append('color', params.color);
-    if (params.page) query.append('page', params.page);
-
-    const queryString = query.toString();
-    return apiService.get(`/notes${queryString ? '?' + queryString : ''}`);
+  getNotes() {
+    return apiService.get('/notes');
   },
 
-  async createNote(data) {
+  getNoteById(id) {
+    return apiService.get(`/notes/${id}`);
+  },
+
+  createNote(data) {
     return apiService.post('/notes', data);
   },
 
-  async updateNote(id, data) {
+  updateNote(id, data) {
     return apiService.put(`/notes/${id}`, data);
   },
 
-  async deleteNote(id) {
+  deleteNote(id) {
     return apiService.delete(`/notes/${id}`);
-  },
-
-  async getNote(id) {
-    return apiService.get(`/notes/${id}`);
   },
 };

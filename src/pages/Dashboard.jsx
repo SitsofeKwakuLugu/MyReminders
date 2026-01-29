@@ -146,9 +146,27 @@ export default function Dashboard() {
                   <li key={todo.id} className="task-item-row">
                     <span className="task-title">{todo.title}</span>
                     <span className={`task-priority ${todo.priority?.toLowerCase() || "low"}`}>{todo.priority || "Medium"}</span>
-                    <input type="checkbox" checked={todo.completed} onChange={() => editTodo(todo.id,{completed: !todo.completed})} />
+                    <input 
+                      type="checkbox" 
+                      checked={todo.completed} 
+                      onChange={async () => {
+                        try {
+                          await editTodo(todo.id, { completed: !todo.completed });
+                        } catch (err) {
+                          console.error('Failed to update todo:', err);
+                          alert('Failed to update task: ' + err.message);
+                        }
+                      }} 
+                    />
                     <button onClick={() => setEditingTodoId(todo.id)}>Edit</button>
-                    <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+                    <button onClick={async () => {
+                      try {
+                        await deleteTodo(todo.id);
+                      } catch (err) {
+                        console.error('Failed to delete todo:', err);
+                        alert('Failed to delete task: ' + err.message);
+                      }
+                    }}>Delete</button>
                     <button onClick={() => setAddingSubTodoId(todo.id)}><FaPlus /></button>
 
                     {/* Sub-Todos */}
@@ -157,9 +175,27 @@ export default function Dashboard() {
                         {todo.subTodos.map(sub => (
                           <li key={sub.id} className="sub-todo-item">
                             <span className="sub-todo-title">{sub.title}</span>
-                            <input type="checkbox" checked={sub.completed} onChange={() => editSubTodo(todo.id, sub.id, {completed: !sub.completed})} />
+                            <input 
+                              type="checkbox" 
+                              checked={sub.completed || false} 
+                              onChange={async () => {
+                                try {
+                                  await editSubTodo(todo.id, sub.id, { completed: !sub.completed });
+                                } catch (err) {
+                                  console.error('Failed to update sub-todo:', err);
+                                  alert('Failed to update sub-task: ' + err.message);
+                                }
+                              }} 
+                            />
                             <button onClick={() => setEditingSubTodo({parentId: todo.id, subId: sub.id})}><FaEdit /></button>
-                            <button onClick={() => deleteSubTodo(todo.id, sub.id)}><FaTrash /></button>
+                            <button onClick={async () => {
+                              try {
+                                await deleteSubTodo(todo.id, sub.id);
+                              } catch (err) {
+                                console.error('Failed to delete sub-todo:', err);
+                                alert('Failed to delete sub-task: ' + err.message);
+                              }
+                            }}><FaTrash /></button>
                           </li>
                         ))}
                       </ul>
@@ -178,7 +214,7 @@ export default function Dashboard() {
             </div>
             {pendingCount > 0 ? (
               <ul className="task-items-list">
-                {filteredTodos.filter(t => t.completed).slice(0,5).map(todo => (
+                {filteredTodos.filter(t => !t.completed).slice(0,5).map(todo => (
                   <li key={todo.id} className="task-item-row">
                     <span className="task-title">{todo.title}</span>
                     <input type="checkbox" checked={todo.completed} readOnly />
@@ -255,7 +291,15 @@ export default function Dashboard() {
               ]}
               initialValues={editingTodo}
               submitLabel="Save"
-              onSubmit={(data) => {editTodo(editingTodo.id,data); setEditingTodoId(null)}}
+              onSubmit={async (data) => {
+                try {
+                  await editTodo(editingTodo.id, data);
+                  setEditingTodoId(null);
+                } catch (err) {
+                  console.error('Failed to edit todo:', err);
+                  alert('Failed to save task: ' + err.message);
+                }
+              }}
               onCancel={()=>setEditingTodoId(null)}
             />
           </Modal>
@@ -285,7 +329,15 @@ export default function Dashboard() {
               title=""
               fields={[{name:"title", label:"Sub-Task Title", required:true}]}
               submitLabel="Create"
-              onSubmit={(data)=>{addSubTodo(addingSubTodoId,data); setAddingSubTodoId(null)}}
+              onSubmit={async (data)=>{
+                try {
+                  await addSubTodo(addingSubTodoId, data);
+                  setAddingSubTodoId(null);
+                } catch (err) {
+                  console.error('Failed to add sub-todo:', err);
+                  alert('Failed to create sub-task: ' + err.message);
+                }
+              }}
               onCancel={()=>setAddingSubTodoId(null)}
             />
           </Modal>
@@ -298,7 +350,15 @@ export default function Dashboard() {
               fields={[{name:"title", label:"Sub-Task Title", required:true}]}
               initialValues={filteredTodos.find(t=>t.id===editingSubTodo.parentId).subTodos.find(s=>s.id===editingSubTodo.subId)}
               submitLabel="Save"
-              onSubmit={(data)=>{editSubTodo(editingSubTodo.parentId, editingSubTodo.subId, data); setEditingSubTodo(null)}}
+              onSubmit={async (data)=>{
+                try {
+                  await editSubTodo(editingSubTodo.parentId, editingSubTodo.subId, data);
+                  setEditingSubTodo(null);
+                } catch (err) {
+                  console.error('Failed to edit sub-todo:', err);
+                  alert('Failed to save sub-task: ' + err.message);
+                }
+              }}
               onCancel={()=>setEditingSubTodo(null)}
             />
           </Modal>
